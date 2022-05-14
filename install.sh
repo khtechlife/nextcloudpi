@@ -30,15 +30,38 @@ type mysqld &>/dev/null && mysql -e 'use nextcloud' &>/dev/null && { echo "The '
 
 # get dependencies
 apt-get update
-apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release
+apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release aria2
 
 # get install code
 if [[ "${CODE_DIR}" == "" ]]; then
   echo "Getting build code..."
   CODE_DIR="${TMPDIR}"/nextcloudpi
-  git clone -b "${BRANCH}" https://github.com/nextcloud/nextcloudpi.git "${CODE_DIR}"
+  git clone -b "${BRANCH}" https://github.com/DesktopECHO/nextcloudpi.git "${CODE_DIR}"
 fi
 cd "${CODE_DIR}"
+
+if [ -e /usr/sbin/unchroot ]; then
+	# Enable apt-fast for download reliability
+	find . -type f -exec sed -i "s/apt-get install -y/apt-fast install -y/g" {} \;
+	find . -type f -exec sed -i "s/apt-get install --no-install-recommends -y/apt-fast install --no-install-recommends -y/g" {} \;
+	# Bypass apt-get update runs
+	find . -type f -exec sed -i "s/apt-get update/echo Skipping apt-get update/g" {} \;
+
+	# Copy SysV Init Scripts
+	chmod -R 755 "${CODE_DIR}/bin"
+	chmod -R 755 "${CODE_DIR}/build/linuxdeploy"
+	mv ${CODE_DIR}/build/linuxdeploy/apt-fast /usr/local/bin/
+	cp ${CODE_DIR}/build/linuxdeploy/* /etc/init.d/
+
+	# Enable Init Scripts
+	update-rc.d -f notify_push defaults
+	update-rc.d -f nc-automount-links defaults
+	update-rc.d -f nc-provisioning defaults
+	update-rc.d -f ncp-metrics-exporter defaults
+	update-rc.d -f nextcloud-domain defaults
+	update-rc.d -f notify_push defaults
+	update-rc.d -f log2ram defaults
+fi
 
 # install NCP
 echo -e "\nInstalling NextCloudPi..."
@@ -61,6 +84,8 @@ cp etc/ncp.cfg /usr/local/etc/
 
 cp -r etc/ncp-templates /usr/local/etc/
 install_app    lamp.sh
+## Android needs this default uncommented
+echo "Mutex file:${APACHE_LOCK_DIR} default" >> /etc/apache2/apache2.conf
 install_app    bin/ncp/CONFIG/nc-nextcloud.sh
 run_app_unsafe bin/ncp/CONFIG/nc-nextcloud.sh
 rm /usr/local/etc/ncp-config.d/nc-nextcloud.cfg    # armbian overlay is ro
