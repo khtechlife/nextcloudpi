@@ -30,9 +30,12 @@ install()
 
     $APTINSTALL -t $RELEASE php${PHPVER} php${PHPVER}-curl php${PHPVER}-gd php${PHPVER}-fpm php${PHPVER}-cli php${PHPVER}-opcache \
                             php${PHPVER}-mbstring php${PHPVER}-xml php${PHPVER}-zip php${PHPVER}-fileinfo php${PHPVER}-ldap \
-                            php${PHPVER}-intl php${PHPVER}-bz2 php${PHPVER}-json
+                            php${PHPVER}-intl php${PHPVER}-bz2 php${PHPVER}-imagick libmagickcore-6.q16-6-extra
 
     mkdir -p /run/php
+
+    ## Android container needs to explicitly set this Apache default 
+    [ -e /usr/sbin/unchroot ] && sed -i 's/#Mutex file:${APACHE_LOCK_DIR} default/Mutex file:${APACHE_LOCK_DIR} default/g' /etc/apache2/apache2.conf 
 
     # mariaDB password
     local DBPASSWD="default"

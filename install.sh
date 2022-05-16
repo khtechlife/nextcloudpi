@@ -30,7 +30,7 @@ type mysqld &>/dev/null && mysql -e 'use nextcloud' &>/dev/null && { echo "The '
 
 # get dependencies
 apt-get update
-apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release aria2
+apt-get install --no-install-recommends -y git ca-certificates sudo lsb-release aria2 gnupg1 libcurl3-gnutls
 
 # get install code
 if [[ "${CODE_DIR}" == "" ]]; then
@@ -45,7 +45,7 @@ if [ -e /usr/sbin/unchroot ]; then
 	find . -type f -exec sed -i "s/apt-get install -y/apt-fast install -y/g" {} \;
 	find . -type f -exec sed -i "s/apt-get install --no-install-recommends -y/apt-fast install --no-install-recommends -y/g" {} \;
 	# Bypass apt-get update runs
-	find . -type f -exec sed -i "s/apt-get update/echo Skipping apt-get update/g" {} \;
+	find . -type f -exec sed -i "s/apt-get update/echo Skipping repo fetch/g" {} \;
 
 	# Copy SysV Init Scripts
 	chmod -R 755 "${CODE_DIR}/bin"
@@ -61,6 +61,11 @@ if [ -e /usr/sbin/unchroot ]; then
 	update-rc.d -f nextcloud-domain defaults
 	update-rc.d -f notify_push defaults
 	update-rc.d -f log2ram defaults
+
+	## PHP Update
+	curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+	sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bullseye main" > /etc/apt/sources.list.d/php.list'
+	apt-get  update
 fi
 
 # install NCP
@@ -84,8 +89,6 @@ cp etc/ncp.cfg /usr/local/etc/
 
 cp -r etc/ncp-templates /usr/local/etc/
 install_app    lamp.sh
-## Android needs this default uncommented
-echo "Mutex file:${APACHE_LOCK_DIR} default" >> /etc/apache2/apache2.conf
 install_app    bin/ncp/CONFIG/nc-nextcloud.sh
 run_app_unsafe bin/ncp/CONFIG/nc-nextcloud.sh
 rm /usr/local/etc/ncp-config.d/nc-nextcloud.cfg    # armbian overlay is ro
@@ -97,11 +100,21 @@ rm /.ncp-image
 # skip on Armbian / Vagrant / LXD ...
 [[ "${CODE_DIR}" != "" ]] || bash /usr/local/bin/ncp-provisioning.sh
 
+## Set Country Code and bounce everything one last time ##
+bash -c "cd /usr/local ; find . -type f -exec sed -i 's/echo Skipping repo fetch/apt-get update/g' {} \;"
+CountryCode=$(curl -s ipinfo.io/ | jq -r .country) ; sed -i "s/$CONFIG = array (/&\n\ \ 'default_phone_region' => '$CountryCode',/" /var/www//nextcloud/config/config.php
+echo Default calling region set to: $CountryCode
+sed -i                   's/pm = .*/pm = static/'               /etc/php/8.1/fpm/pool.d/www.conf 
+sed -i      's/pm.max_children = .*/pm.max_children = 64/'      /etc/php/8.1/fpm/pool.d/www.conf 
+sed -i     's/pm.start_servers = .*/pm.start_servers = 8/'      /etc/php/8.1/fpm/pool.d/www.conf 
+sed -i 's/pm.min_spare_servers = .*/pm.min_spare_servers = 8/'  /etc/php/8.1/fpm/pool.d/www.conf 
+sed -i 's/pm.max_spare_servers = .*/pm.max_spare_servers = 16/' /etc/php/8.1/fpm/pool.d/www.conf 
+systemctl restart dbus avahi-daemon apache2 php8.1-fpm mariadb redis-server >> /tmp/services
+
 cd -
 rm -rf "${TMPDIR}"
 
 IP="$(get_ip)"
-
 echo "Done.
 
 First: Visit https://$IP/  https://nextcloudpi.local/ (also https://nextcloudpi.lan/ or https://nextcloudpi/ on windows and mac)

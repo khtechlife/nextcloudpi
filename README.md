@@ -1,34 +1,62 @@
-English | [Traditional Chinese 繁體中文](i18n/README-zh_TW.md) | [Simplified Chinese 简体中文](i18n/README-zh_CN.md)
+# NextCloudPi for Android (NextCloud v24.0.5)
 
-# NextCloudPi [![chatroom icon](https://patrolavia.github.io/telegram-badge/chat.png)](https://t.me/NextCloudPi) [![forums icon](https://img.shields.io/badge/help-forums-blue.svg)](https://help.nextcloud.com/c/support/appliances-docker-snappy-vm) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=N8PJHSEQF4G7Y&lc=US&item_name=Own%20Your%20Bits&item_number=NextCloudPi&no_note=1&no_shipping=1&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted) [![blog](https://img.shields.io/badge/follow-blog-orange.svg)](https://ownyourbits.com)
+- Lightly-forked edition of [NextCloudPi](https://github.com/nextcloud/nextcloudpi/compare/master...DesktopECHO:master) 
+- [Video](https://www.youtube.com/watch?v=RuHJ_S9DcG4) of NextCloudPi deployment on a Kindle HD 8 (2017) running LineageOS
 
+![image](https://user-images.githubusercontent.com/33142753/175468814-855abd7e-309e-41f9-aafc-869ff4ac5b21.png)
 
-![NC Logo](https://ownyourbits.com/wp-content/uploads/2017/11/ncp-square.png)
+**Hardware Requirements** 
+--
+NextCloudDroid requires a **rooted** ARMv7 or ARMv8 Android device from 2013-onward.  Form factor is unimportant; it could be a phone, tablet, HDMI stick, TV box, toaster, **any** device running Android.
 
-This is the build code for [NextCloudPi](https://nextcloudpi.com).
+Many ARM-based devices are becoming hard to come by due to supply chain woes.  Those searching online for a reasonably-priced SBC may already have one gathering dust in a desk drawer, unused and ready for a project.  
 
-NextCloudPi is a ready to use image for Raspberry Pi, Odroid HC1, rock64 and other boards.
+# Instructions:
 
-This code also generates the NextCloudPi [docker image](https://hub.docker.com/r/ownyourbits/nextcloudpi), LXD and VM, and includes an installer for any Debian based system.
+- Open web browser on device and download+install the Linux Deploy APK.  You can also download this from the Play Store if preferred:
 
-Find the full documentation at [docs.nextcloudpi.com](http://docs.nextcloudpi.com)
+  - Get the latest version at: **https://github.com/meefik/linuxdeploy/releases**
 
----
-[![VM Integration Tests](https://github.com/nextcloud/nextcloudpi/workflows/VM%20Integration%20Tests/badge.svg)](https://github.com/nextcloud/nextcloudpi/actions/workflows/vm-tests.yml)
+-  Download the NextCloudDroid disk image: (**v1.2 / June 20, 2022**)
 
-[![Docker Integration Tests](https://github.com/nextcloud/nextcloudpi/actions/workflows/build-docker.yml/badge.svg)](https://github.com/nextcloud/nextcloudpi/actions/workflows/build-docker.yml)
+   - **https://github.com/DesktopECHO/linuxdeploy-images/raw/main/ncd12.tgz**
 
----
+- Open **Linux Deploy** and change these settings:
+     -  Open Properties Menu (Usually at the bottom or right of the screen)
+     -  Distribution: **rootfs.tar**
+     -  Installation Type -> **File**
+     -  Image Size (MB) -> **4000** (as a minimum, more if you have the space)
+     -  Source Path - This varies by device, ie: **${EXTERNAL_STORAGE}/Download/ncd12.tgz**
+     -  Set password for user **android**
+     -  Init -> **Enable** 
+     -  Init system -> **SysV**
+     -  Go back to the main window, open the 'Hamburger menu' (Three dashes at top left) and touch **Settings**
+     -  Place checkmark on **Lock Wi-Fi** if your device has Wi-Fi
+     -  Place checkmark on **Wake Lock** to prevent your device from sleeping     
+     -  Place checkmark on **Autostart** to start NextCloud when the Android device is powered-on.
+    
+ - Go back to the main window, click **Options** Menu (Three dots, usually at top right of screen) and click **Install**
 
-## Features
+[ncd12.tgz](https://github.com/DesktopECHO/linuxdeploy-images) will automatically launch the NextCloudPi installer at first run.  If the installaion is successful, you will be prompted to contune setup in the web interface:
+![image](https://user-images.githubusercontent.com/33142753/175468710-89c06b31-8754-4d0d-90f6-34e74048bd76.png)
 
- * Debian/Raspbian 11 Bullseye
- * Nextcloud 23.0.2
+If you're using [debian.tgz](https://github.com/DesktopECHO/linuxdeploy-images/raw/main/debian.tgz) instead, login to the container and run: 
+```
+# curl -sSL https://raw.githubusercontent.com/DesktopECHO/nextcloudpi/master/install.sh | bash
+```
+**If your Android device has a battery and was unused for months or longer, replace its battery.** Old, worn, or abused Li-ion batteries can fail when pushed back into service. Failure appears as a bulge in the battery, or worse a “thermal event” - Replacing it serves as a UPS for your device.
+
+![Screenshot_20220624-032001_Chromium](https://user-images.githubusercontent.com/33142753/175473301-e20e7de0-84f6-4580-9ede-98bffb11c817.png)
+
+## Features (Some are untested)
+
+ * Debian 11 Bullseye
+ * Nextcloud 24.0.5
  * Apache 2.4.25, with HTTP2 enabled
- * PHP 7.4
- * MariaDB 10
+ * PHP 8.1
+ * MariaDB 10.5
  * Redis memory cache
- * ncp-config for easy setup ( RAM logs, USB drive and more )
+ * ncp-config for easy setup 
  * Automatic redirection to HTTPS
  * ACPU PHP cache
  * PHP Zend OPcache enabled with file cache
@@ -39,7 +67,7 @@ Find the full documentation at [docs.nextcloudpi.com](http://docs.nextcloudpi.co
  * Postfix email
  * Secure
 
-## Extras
+## Extras (Some are untested)
 
  * Setup wizard
  * NextCloudPi Web Panel
@@ -58,96 +86,22 @@ Find the full documentation at [docs.nextcloudpi.com](http://docs.nextcloudpi.co
  * ModSecurity Web Application Firewall
  * NFS ready to mount your files over LAN
  * SAMBA ready to share your files with Windows/Mac/Linux
- * USB automount
  * Remote updates
  * Automatic NCP updates
  * Automatic Nextcloud updates
  * Update notifications
  * NextCloud backup and restore
  * NextCloud online installation
- * Format USB drive to BTRFS
- * BTRFS snapshots
- * Automatic BTRFS snapshots
- * BTRFS snapshot auto sync
  * scheduled rsync
  * UPnP automatic port forwarding
  * Security audits with Lynis and Debsecan
  * ZRAM
- * SMART hard drive health monitoring
  * Prometheus metrics monitoring
 
-Extras can be activated and configured using the web interface at HTTPS port 4443
-
-![ncp-web](https://user-images.githubusercontent.com/21343324/136853829-f4e99ec0-6307-431f-b4c7-21b2330cae7f.png)
-
-, or from the command line from
+Extras can be activated and configured using the web interface at HTTPS port 4443, or from the command line from
 
 ```
 sudo ncp-config
 ```
-
-![NCP-config](https://ownyourbits.com/wp-content/uploads/2017/03/ncp-conf-700x456.jpg)
-
-
-## Run in docker
-
-```
-docker run -d -p 4443:4443 -p 443:443 -p 80:80 -v ncdata:/data --name nextcloudpi ownyourbits/nextcloudpi $DOMAIN
-```
-
-## Run in LXD
-
-```
-lxc import NextCloudPi_LXD_09-29-21.tar.bz
-lxc start ncp
-```
-
-## How to build
-
-Install git, docker, qemu-user-static, chroot and all the usual building tools.
-
-```
-git clone https://github.com/nextcloud/nextcloudpi.git
-cd nextcloudpi
-build/build-SD-rpi.sh
-```
-
-, or for an Armbian based board
-
-```
-./build-SD-armbian.sh odroidxu4   # supported board code name
-```
-
-In order to generate the Docker images
-
-```
-git clone https://github.com/nextcloud/nextcloudpi.git
-cd nextcloudpi
-build/build-docker.sh x86
-build/build-docker.sh armhf
-build/build-docker.sh arm64
-```
-
-, for LXD
-
-```
-build/build-LXD.sh
-```
-
-NextCloudPi can be installed in any architecture running the latest Debian
-
-_Note: this assumes a clean Debian install, and there is no rollback method_
-
-```
-# curl -sSL https://raw.githubusercontent.com/nextcloud/nextcloudpi/master/install.sh | bash
-```
-
-## Downloads
-
-https://nextcloudpi.com
-
-https://hub.docker.com/r/ownyourbits/nextcloudpi
-
-## Contact
-
-You can find us in the [forums](https://help.nextcloud.com/c/support/appliances-docker-snappy-vm) and a [Telegram group](https://t.me/NextCloudPi)
+Find the full documentation at [docs.nextcloudpi.com](http://docs.nextcloudpi.com)
+---
