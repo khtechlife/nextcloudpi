@@ -62,6 +62,9 @@ if [ -e /usr/sbin/unchroot ]; then
 	update-rc.d -f notify_push defaults
 	update-rc.d -f log2ram defaults
 
+	# Redis
+	apt-get -y install redis ;  mkdir -p /var/run/redis/ ; touch  /var/run/redis/redis.sock ; chown -R redis:redis /var/run/redis ; systemctl restart redis-server
+	
 	## PHP Update
 	curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
 	sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bullseye main" > /etc/apt/sources.list.d/php.list'
